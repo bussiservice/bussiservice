@@ -270,11 +270,30 @@ function sayYes(){
     for(let i=0;i<1000;i++){
         const heart=document.createElement("div");
         heart.classList.add("heart");
-        heart.innerHTML = i < 500 ? "💋" : "❤";
+        heart.innerHTML = "❤";
         heart.style.left=Math.random()*window.innerWidth+"px";
         heart.style.top=Math.random()*window.innerHeight+"px";
         document.body.appendChild(heart);
         setTimeout(()=>heart.remove(),3000);
+
+        if(i === 998){
+            const thought = document.createElement("div");
+            thought.innerHTML = "Hab di lieb, dei Kipfi!";
+            thought.style.position = "fixed";
+            thought.style.top = "50%";
+            thought.style.left = "50%";
+            thought.style.transform = "translate(-50%, -50%)";
+            thought.style.background = "white";
+            thought.style.border = "2px solid hotpink";
+            thought.style.padding = "20px";
+            thought.style.borderRadius = "20px";
+            thought.style.fontSize = "28px";
+            thought.style.color = "hotpink";
+            thought.style.zIndex = "2000";
+            thought.style.boxShadow = "0 0 10px rgba(255, 105, 180, 0.5)";
+            document.body.appendChild(thought);
+            setTimeout(() => thought.remove(), 5000);
+        }
     }
 }
 </script>
