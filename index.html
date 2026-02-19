@@ -10,7 +10,26 @@ body {
     margin: 0;
     overflow: hidden;
     background: #d8d3c8;
-    cursor: crosshair;
+    cursor: none;
+    transition: background 0.5s ease;
+}
+
+/* Custom Cursor */
+.cursor {
+    position: fixed;
+    font-size: 18px;
+    pointer-events: none;
+    z-index: 1000;
+    transition: transform 0.2s ease;
+}
+
+.pulse {
+    animation: pulse 0.8s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.6); }
 }
 
 /* Grid */
@@ -25,7 +44,6 @@ body {
     width: 140px;
     height: 140px;
     margin: auto;
-    cursor: pointer;
     animation: spin 10s linear infinite;
     transition: transform 0.3s ease;
 }
@@ -34,20 +52,9 @@ body {
     transform: scale(1.15);
 }
 
-.flower.special {
-    cursor: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="red"/%3E%3C/svg%3E') 12 12, auto;
-}
-
-.flower.disco {
-    cursor: grab;
-}
-
-.flower.disco-mode {
-    animation: disco-spin 1s linear infinite !important;
-}
-
-body.disco {
-    background: black;
+.disco-flower {
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+    filter: brightness(1.3);
 }
 
 @keyframes spin {
@@ -55,9 +62,26 @@ body.disco {
     to { transform: rotate(360deg); }
 }
 
-@keyframes disco-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+/* Disco Mode */
+.disco {
+    animation: bgFlash 1s infinite;
+}
+
+@keyframes bgFlash {
+    0% { background: black; }
+    25% { background: #ff00ff; }
+    50% { background: #00ffff; }
+    75% { background: #ffff00; }
+    100% { background: black; }
+}
+
+.disco .flower {
+    animation: dance 0.4s infinite alternate, spin 3s linear infinite;
+}
+
+@keyframes dance {
+    from { transform: rotate(-15deg) scale(1); }
+    to { transform: rotate(15deg) scale(1.3); }
 }
 
 /* Popup */
@@ -68,7 +92,6 @@ body.disco {
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 100;
 }
 
 .popup-content {
@@ -77,11 +100,17 @@ body.disco {
     border-radius: 30px;
     text-align: center;
     font-family: Arial, sans-serif;
-    font-size: 26px;
+    font-size: 24px;
     position: relative;
 }
 
-/* Buttons */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
 .btn {
     margin: 20px;
     padding: 12px 30px;
@@ -91,16 +120,9 @@ body.disco {
     cursor: pointer;
 }
 
-.yes {
-    background: hotpink;
-    color: white;
-}
+.yes { background: hotpink; color: white; }
+.no { background: lightgray; }
 
-.no {
-    background: lightgray;
-}
-
-/* Hearts */
 .heart {
     position: fixed;
     color: hotpink;
@@ -116,51 +138,51 @@ body.disco {
 </head>
 <body>
 
+<div class="cursor" id="cursor">✖</div>
 <div class="grid" id="grid"></div>
 
-<div class="popup" id="popup">
+<div class="popup" id="popup" onclick="closePopupOutside(event)">
     <div class="popup-content">
-        <div id="question">Liebster David, möchtest du 1000 Bussis annehmen?</div>
+        <div class="close" onclick="closePopup()">✖</div>
+        <div id="question">
+            Liebster David, möchtest du 1000 Bussis annehmen?
+        </div>
         <button class="btn yes" onclick="sayYes()">Ja 💖</button>
         <button class="btn no" id="noBtn">Nein</button>
     </div>
 </div>
 
-<audio id="music" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+<audio id="discoSound" loop>
+<source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mp3">
 </audio>
 
 <script>
 const grid = document.getElementById("grid");
+const cursor = document.getElementById("cursor");
+const popup = document.getElementById("popup");
+const discoSound = document.getElementById("discoSound");
+let discoActive = false;
 
-/* Exact flower shapes */
-function createFlower(color, centerColor, type) {
+/* Cursor follows mouse */
+document.addEventListener("mousemove", e => {
+    cursor.style.left = e.clientX + "px";
+    cursor.style.top = e.clientY + "px";
+});
+
+function createFlower(color, centerColor) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 200 200");
     svg.classList.add("flower");
 
-    if(type === 1) {
-        for(let i=0;i<8;i++){
-            const petal = document.createElementNS("http://www.w3.org/2000/svg","ellipse");
-            petal.setAttribute("cx",100);
-            petal.setAttribute("cy",50);
-            petal.setAttribute("rx",30);
-            petal.setAttribute("ry",60);
-            petal.setAttribute("fill",color);
-            petal.setAttribute("transform","rotate("+(i*45)+" 100 100)");
-            svg.appendChild(petal);
-        }
-    }
-
-    if(type === 2) {
-        for(let i=0;i<6;i++){
-            const petal = document.createElementNS("http://www.w3.org/2000/svg","circle");
-            petal.setAttribute("cx",100 + 50*Math.cos(i*60*Math.PI/180));
-            petal.setAttribute("cy",100 + 50*Math.sin(i*60*Math.PI/180));
-            petal.setAttribute("r",40);
-            petal.setAttribute("fill",color);
-            svg.appendChild(petal);
-        }
+    for(let i=0;i<8;i++){
+        const petal = document.createElementNS("http://www.w3.org/2000/svg","ellipse");
+        petal.setAttribute("cx",100);
+        petal.setAttribute("cy",50);
+        petal.setAttribute("rx",30);
+        petal.setAttribute("ry",60);
+        petal.setAttribute("fill",color);
+        petal.setAttribute("transform","rotate("+(i*45)+" 100 100)");
+        svg.appendChild(petal);
     }
 
     const center = document.createElementNS("http://www.w3.org/2000/svg","circle");
@@ -173,52 +195,67 @@ function createFlower(color, centerColor, type) {
     return svg;
 }
 
-/* Colors like screenshot */
-const combinations = [
-    ["#f48c5e","#ffffff",1],
-    ["#b6d96c","#f48c5e",2],
-    ["#f54287","#27c4c2",2],
-    ["#e2c93b","#6c5ce7",2],
-    ["#27c4c2","#e2c93b",1],
-    ["#6c5ce7","#ffffff",2]
+const colors = [
+    ["#f48c5e","#ffffff"],
+    ["#b6d96c","#f48c5e"],
+    ["#f54287","#27c4c2"],
+    ["#e2c93b","#6c5ce7"],
+    ["#27c4c2","#e2c93b"],
+    ["#6c5ce7","#ffffff"]
 ];
 
 for(let i=0;i<36;i++){
-    const combo = combinations[i % combinations.length];
-    const flower = createFlower(combo[0], combo[1], combo[2]);
-    if(i % 3 === 2){
-        flower.classList.add("special");
-        flower.addEventListener("click",()=>{
-            document.getElementById("popup").style.display="flex";
-            document.getElementById("music").play();
+    const combo = colors[i % colors.length];
+    const flower = createFlower(combo[0], combo[1]);
+
+    /* Jede dritte Blume → Popup */
+    if((i+1) % 3 === 0){
+        flower.addEventListener("mouseenter", ()=>{
+            if(!discoActive) cursor.innerHTML="❤";
+        });
+        flower.addEventListener("mouseleave", ()=>{
+            if(!discoActive) cursor.innerHTML="✖";
+        });
+        flower.addEventListener("click", ()=>{
+            popup.style.display="flex";
         });
     }
-    if(i === 0){
-        flower.classList.add("disco");
-        flower.addEventListener("click",()=>{
-            if (document.body.classList.contains("disco")) {
-                document.body.classList.remove("disco");
-                const allFlowers = document.querySelectorAll(".flower");
-                allFlowers.forEach(f => f.classList.remove("disco-mode"));
+
+    /* Disco-Blume (in der Mitte) */
+    if(i === 13){
+        flower.classList.add("disco-flower");
+        flower.addEventListener("click", ()=>{
+            discoActive = !discoActive;
+            document.body.classList.toggle("disco");
+
+            if(discoActive){
+                cursor.innerHTML="❤";
+                cursor.classList.add("pulse");
+                discoSound.play();
             } else {
-                document.body.classList.add("disco");
-                const allFlowers = document.querySelectorAll(".flower");
-                allFlowers.forEach(f => f.classList.add("disco-mode"));
+                cursor.innerHTML="✖";
+                cursor.classList.remove("pulse");
+                discoSound.pause();
+                discoSound.currentTime = 0;
             }
         });
     }
+
     grid.appendChild(flower);
 }
 
-/* Popup schließbar */
-const popup = document.getElementById("popup");
-popup.addEventListener("click", (e) => {
-    if(e.target === popup) {
-        popup.style.display = "none";
-    }
-});
+/* Popup schließen */
+function closePopup(){
+    popup.style.display="none";
+}
 
-/* Moving No button */
+function closePopupOutside(event){
+    if(event.target === popup){
+        popup.style.display="none";
+    }
+}
+
+/* Nein-Button bewegt sich */
 const noBtn = document.getElementById("noBtn");
 noBtn.addEventListener("mouseover",()=>{
     noBtn.style.position="absolute";
@@ -226,10 +263,11 @@ noBtn.addEventListener("mouseover",()=>{
     noBtn.style.top=Math.random()*200+"px";
 });
 
-/* Yes action */
+/* Ja-Aktion */
 function sayYes(){
-    document.getElementById("question").innerHTML="Juhu 💕";
-    for(let i=0;i<20;i++){
+    document.getElementById("question").innerHTML="1000 Bussis kommen sofort 💕";
+
+    for(let i=0;i<40;i++){
         const heart=document.createElement("div");
         heart.classList.add("heart");
         heart.innerHTML="❤";
