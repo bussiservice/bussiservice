@@ -270,7 +270,7 @@ function sayYes(){
     for(let i=0;i<1000;i++){
         const heart=document.createElement("div");
         heart.classList.add("heart");
-        heart.innerHTML="💋";
+        heart.innerHTML = Math.random() > 0.5 ? "💋" : "❤";
         heart.style.left=Math.random()*window.innerWidth+"px";
         heart.style.top=Math.random()*window.innerHeight+"px";
         document.body.appendChild(heart);
