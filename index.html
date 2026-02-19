@@ -10,6 +10,7 @@ body {
     margin: 0;
     overflow: hidden;
     background: #d8d3c8;
+    cursor: crosshair;
 }
 
 /* Grid */
@@ -33,7 +34,30 @@ body {
     transform: scale(1.15);
 }
 
+.flower.special {
+    cursor: url('data:image/svg+xml,<    git add .
+    git commit -m "Valentine's page ready for deployment"
+    git push origin mainsvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="red"/></svg>') 12 12, auto;
+}
+
+.flower.disco {
+    cursor: grab;
+}
+
+.flower.disco-mode {
+    animation: disco-spin 1s linear infinite !important;
+}
+
+body.disco {
+    background: black;
+}
+
 @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes disco-spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
@@ -98,9 +122,7 @@ body {
 
 <div class="popup" id="popup">
     <div class="popup-content">
-        <div id="question">
-            David, möchtest du 1000 Bussis von mir annehmen?
-        </div>
+        <div id="question">Liebster David, möchtest du 1000 Bussis annehmen?</div>
         <button class="btn yes" onclick="sayYes()">Ja 💖</button>
         <button class="btn no" id="noBtn">Nein</button>
     </div>
@@ -113,7 +135,7 @@ body {
 <script>
 const grid = document.getElementById("grid");
 
-/* Flower generator */
+/* Exact flower shapes */
 function createFlower(color, centerColor, type) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 200 200");
@@ -153,7 +175,7 @@ function createFlower(color, centerColor, type) {
     return svg;
 }
 
-/* Color combinations */
+/* Colors like screenshot */
 const combinations = [
     ["#f48c5e","#ffffff",1],
     ["#b6d96c","#f48c5e",2],
@@ -166,18 +188,39 @@ const combinations = [
 for(let i=0;i<36;i++){
     const combo = combinations[i % combinations.length];
     const flower = createFlower(combo[0], combo[1], combo[2]);
-
-    if(i===1){
+    if(i % 3 === 2){
+        flower.classList.add("special");
         flower.addEventListener("click",()=>{
             document.getElementById("popup").style.display="flex";
             document.getElementById("music").play();
         });
     }
-
+    if(i === 0){
+        flower.classList.add("disco");
+        flower.addEventListener("click",()=>{
+            if (document.body.classList.contains("disco")) {
+                document.body.classList.remove("disco");
+                const allFlowers = document.querySelectorAll(".flower");
+                allFlowers.forEach(f => f.classList.remove("disco-mode"));
+            } else {
+                document.body.classList.add("disco");
+                const allFlowers = document.querySelectorAll(".flower");
+                allFlowers.forEach(f => f.classList.add("disco-mode"));
+            }
+        });
+    }
     grid.appendChild(flower);
 }
 
-/* Moving "Nein" button */
+/* Popup schließbar */
+const popup = document.getElementById("popup");
+popup.addEventListener("click", (e) => {
+    if(e.target === popup) {
+        popup.style.display = "none";
+    }
+});
+
+/* Moving No button */
 const noBtn = document.getElementById("noBtn");
 noBtn.addEventListener("mouseover",()=>{
     noBtn.style.position="absolute";
@@ -185,11 +228,10 @@ noBtn.addEventListener("mouseover",()=>{
     noBtn.style.top=Math.random()*200+"px";
 });
 
-/* "Ja" action */
+/* Yes action */
 function sayYes(){
-    document.getElementById("question").innerHTML="Du bekommst sofort 1000 Bussis! 💕";
-
-    for(let i=0;i<30;i++){
+    document.getElementById("question").innerHTML="Juhu 💕";
+    for(let i=0;i<20;i++){
         const heart=document.createElement("div");
         heart.classList.add("heart");
         heart.innerHTML="❤";
@@ -202,4 +244,4 @@ function sayYes(){
 </script>
 
 </body>
-</html>##
+</html>
